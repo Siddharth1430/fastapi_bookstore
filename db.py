@@ -2,17 +2,24 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
-
-url = URL.create(
+from dotenv import load_dotenv
+import os
+"""url = URL.create(
     drivername="postgresql",
     username="avnadmin",
     password="AVNS_w3wZO5vqRzgkJrdLQQV",
     host="pg-3d2ee583-steinnlabs-90b8.h.aivencloud.com",
     database="defaultdb",
     port=25995
-)
+)"""
 
-engine = create_engine(url)
+
+
+load_dotenv()  # Load environment variables
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL )
 
 Session = sessionmaker(bind=engine)
 session = Session()
