@@ -3,13 +3,30 @@ from services.retrieve import RetrieveService
 from services.create import CreateService
 from services.update import UpdateService
 from services.delete import DeleteService
-from schemas import BookSchema,BookCreate,AuthorCreate,AuthorSchema
+from services.users import UserService
+from schemas import BookSchema,BookCreate,AuthorCreate,AuthorSchema,UserLogin,UserResponse,UserCreate,Refresh
 from typing import List,Dict
 from db import get_db 
 from sqlalchemy.orm import Session
 from fastapi.responses import StreamingResponse
+#from fastapi_jwt_auth import AuthJWT
 
 app=FastAPI()
+
+@app.post("/signup", response_model=UserResponse)
+def signup(user: UserCreate, db: Session = Depends(get_db)):
+    results = UserService(db)
+    return results.signup(user)
+    
+@app.post("/login")
+def login_user(user :UserLogin ,db: Session= Depends(get_db)):
+    results = UserService(db)
+    return results.login_user(user)
+
+@app.post("/auth/refresh")
+def refresh(token : Refresh,db: Session= Depends(get_db)):
+    results= UserService(db)
+    return results.refresh(token)
 
 @app.get("/")
 def hello():
@@ -149,4 +166,3 @@ def delete_author(author_id : int, db: Session = Depends(get_db)):
     return service.delete_author(author_id)
 
 
-    

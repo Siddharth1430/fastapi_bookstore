@@ -26,3 +26,11 @@ class Book(Base):
     #year = Column(Integer)
     #created_at = Column(DateTime, server_default=func.now())
     author=relationship("Author", back_populates="books")
+
+class Users(Base):
+    __tablename__ = 'users'
+    user_id = Column(Integer,primary_key=True,index=True)
+    user_name =Column(String,index=True)  
+    password = Column(String)
+    email = Column(String, index = True)
+    avatar = Column(String)
