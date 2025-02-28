@@ -13,7 +13,7 @@ class UpdateService:
         """
         self.session = session 
           
-    def update_book(self,book_id: int, book: BookCreate,user: dict):
+    def update_book(self,book_id: int, book: BookCreate):
         """
         This function updates the book by getting the id from user to locate the book.
         validation:
@@ -39,7 +39,7 @@ class UpdateService:
         self.session.refresh(results)
         return results
     
-    def update_author(self, author_id: int, author:AuthorCreate,user: dict):
+    def update_author(self, author_id: int, author:AuthorCreate):
         """
         This function updates the author by getting the id from user to locate the author.
         validation:

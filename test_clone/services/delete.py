@@ -12,7 +12,7 @@ class DeleteService:
         """
         self.session = session
 
-    def delete_book(self,book_id : int,user: dict):
+    def delete_book(self,book_id : int):
         """
         This function which gets the id of he book which needs to be deleted.
         Returns:
@@ -26,7 +26,7 @@ class DeleteService:
         self.session.commit()
         return {"message":"book deleted"}
     
-    def delete_author(self, author_id : int,user: dict):
+    def delete_author(self, author_id : int):
         """
         This function which gets the id of he author which needs to be deleted.
         Returns:
