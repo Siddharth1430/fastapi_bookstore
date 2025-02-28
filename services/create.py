@@ -26,7 +26,7 @@ class CreateService:
         """
         self.session = session 
         
-    def create_book(self,book: BookCreate):
+    def create_book(self,book: BookCreate,user: dict):
         """
         This function creates the new book .
         validation:
@@ -45,7 +45,7 @@ class CreateService:
         self.session.refresh(new)
         return new
 
-    def create_author(self, book_id: int,author: AuthorCreate):
+    def create_author(self, book_id: int,author: AuthorCreate,user: dict):
         """
         This function creates the new author .
         validation:
@@ -71,7 +71,7 @@ class CreateService:
         
         return new_author
 
-    def upload_file(self,file: UploadFile):
+    def upload_file(self,file: UploadFile,user: dict):
         """
         This function uploads the file .
         validation:

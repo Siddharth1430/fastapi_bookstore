@@ -1,0 +1,32 @@
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import HTTPException,Security
+from jose import jwt
+from dotenv import load_dotenv
+import os
+from datetime import datetime
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = "HS256"
+
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
+    token = credentials.credentials
+    payload = verify_jwt_token(token)
+    if payload is None:
+        print("payload is empty")
+        raise HTTPException(status_code=403,detail="User Invalid.")
+    print (payload)
+
+def verify_jwt_token(token: str):
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(decoded_token)
+        return decoded_token
+    except Exception as e:
+        
+        print(SECRET_KEY)
+        print(token)
+        print(ALGORITHM)
+        print("Exception occurs while verifying token")
+        print(e)

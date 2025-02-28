@@ -7,7 +7,7 @@ class AuthorSchema(BaseModel):
     no_of_books_published: int
     
     class Config:
-        from_attributes=True
+        from_attributes =True
         
 class AuthorCreate(BaseModel):
     #id: Optional[int]=None
@@ -37,4 +37,27 @@ class BookCreate(BaseModel):
         from_attributes=True
 
 
+class UserLogin(BaseModel):
+    
+    password : str
+    email : str
+        
+
+class UserCreate(BaseModel):
+    user_name: str
+    password: str
+    email : str
+    avatar : str
+    
+class UserResponse(BaseModel):
+    user_name: str
+    user_id: int
+    email : str
+    avatar : str
+    class Config:
+        from_attributes = True
+        
+class Refresh(BaseModel):
+    refresh_token : str
+    
     
