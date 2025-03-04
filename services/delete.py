@@ -1,8 +1,6 @@
 from fastapi import Depends,HTTPException
 from models import Book,Author
 from sqlalchemy.orm import Session
-from db import session
-from db import get_db 
 
 class DeleteService:
     """This is a DeleteService class to delete a book"""
@@ -18,7 +16,6 @@ class DeleteService:
         Returns:
         Dict: return a dic to display a message
         """
-
         results = self.session.query(Book).filter(Book.id == book_id).first()
         if not results :
             raise HTTPException(status_code=404, detail="Item not found")

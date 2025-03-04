@@ -4,30 +4,83 @@ from services.create import CreateService
 from services.update import UpdateService
 from services.delete import DeleteService
 from services.users import UserService
-from schemas import BookSchema,BookCreate,AuthorCreate,AuthorSchema,UserLogin,UserResponse,UserCreate,Refresh
-from typing import List,Dict
+from otp_auth.handler import OTPAuthentication
+from schemas.author_schemas import AuthorCreate,AuthorSchema
+from schemas.book_schemas import BookSchema,BookCreate,BookFilter
+from schemas.user_schema import UserLogin,UserResponse,UserCreate,Refresh
+from otp_auth.schema import Verifier,OTPGenerator
+from typing import List
 from db import get_db 
 from sqlalchemy.orm import Session
 from fastapi.responses import StreamingResponse
-#from fastapi_jwt_auth import AuthJWT
 from fastapi.security import HTTPBearer
 from auth import get_current_user
 
 security = HTTPBearer()
 app=FastAPI()
 
+@app.post("/generateotp")
+def generate_otp(payload:OTPGenerator,db : Session= Depends(get_db)):
+    """_summary_
+    Generates an OTP for phone number authentication.
+    Args:
+        payload (GenerateOTP): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_: str_
+    """
+    results = OTPAuthentication(db)
+    return results.generate_otp(payload)
+
+@app.post("/verify")
+def verify_via_phone_number(payload:Verifier,db: Session= Depends(get_db)):
+    """_summary_
+     Verifies the OTP sent to the user's phone number.
+    Args:
+        payload (VerifyByPhoneNumber): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        dict: access token and refresh token
+    """
+    results = OTPAuthentication(db)
+    return results.verify_via_phone_number(payload)
+
 @app.post("/signup", response_model=UserResponse)
 def signup(user: UserCreate, db: Session = Depends(get_db)):
+    """_summary_
+    Registers a new user and returns user details.
+    Args:
+        user (UserCreate): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_: User pydantic model
+    """
     results = UserService(db)
     return results.signup(user)
     
 @app.post("/login")
 def login_user(user :UserLogin ,db: Session= Depends(get_db)):
+    """_summary_
+    Authenticates a user and returns an access token.
+    Args:
+        user (UserLogin): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_: dict
+    """
     results = UserService(db)
     return results.login_user(user)
 
 @app.post("/auth/refresh")
 def refresh(token : Refresh,db: Session= Depends(get_db)):
+    """_summary_
+    Refreshes the authentication token.
+    Args:
+        token (Refresh): _description_
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_: dict
+    """
     results= UserService(db)
     return results.refresh(token)
 
@@ -42,8 +95,27 @@ def hello():
 
 @app.get("/books/all",response_model=List[BookSchema])
 def get_books( db: Session = Depends(get_db)):
+    """_summary_
+    
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_:List of Book pydantic model
+    """
     results= RetrieveService(db)
     return results.get_books()
+
+@app.get("/users/all",response_model=List[UserResponse])
+def get_users( db: Session = Depends(get_db)):
+    """_summary_
+    This function displays all users.
+    Args:
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_: List of User pydantic model
+    """
+    results= RetrieveService(db)
+    return results.get_users()
 
 @app.get("/books",response_model=List[BookSchema])
 def paginate_books(page_number: int=Query(1,gt=0),page_size: int =Query(5,lt=10),db: Session = Depends(get_db)):
@@ -66,6 +138,19 @@ def get_individual_book(book_id : int, db: Session = Depends(get_db)):
     """    
     service = RetrieveService(db) 
     return service.get_individual_book(book_id)
+
+@app.get("/books/",response_model=List[BookSchema])
+def get_filtered_books(book : BookFilter = Depends(),db : Session = Depends(get_db)):
+    """_summary_
+    This function filters the book based on given query
+    Args:
+        book (BookFilter, optional): _description_. Defaults to Depends().
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    Returns:
+        _type_: List of Bookschema
+    """
+    service = RetrieveService(db) 
+    return service.get_filtered_books(book)
 
 @app.get("/authors", response_model=List[AuthorSchema])
 def get_author(db: Session = Depends(get_db)):
@@ -91,8 +176,6 @@ def create_author(book_id : int,author_data: AuthorCreate, db: Session = Depends
     service = CreateService(db)
     return service.create_author(book_id,author_data,user)
 
-
-
 @app.post("/books",response_model=BookSchema)
 def create_book(book: BookCreate,db: Session= Depends(get_db),user: dict = Depends(get_current_user)):
     """
@@ -108,11 +191,26 @@ def create_book(book: BookCreate,db: Session= Depends(get_db),user: dict = Depen
     
 @app.post("/files")
 def upload_file(file:UploadFile = File(),db:Session = Depends(get_db),user: dict = Depends(get_current_user)):
+    """_summary_
+    This function uploads file to cloudinary.
+    Args:
+        file (UploadFile, optional): _description_. Defaults to File().
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+        user (dict, optional): _description_. Defaults to Depends(get_current_user).
+    Returns:
+        _type_: dict
+    """
     service = CreateService(db)
     return service.upload_file(file,user)
 
 @app.post("/filestream")
 def file_stream(file : UploadFile =File(),db:Session=Depends(get_db)):
+    """_summary_
+    This function is to stream the file
+    Args:
+        file (UploadFile, optional): _description_. Defaults to File().
+        db (Session, optional): _description_. Defaults to Depends(get_db).
+    """
     def iterfile():
         chunk_size =10 * 1024
         while True:
@@ -147,6 +245,17 @@ def update_author(author_id: int, author: AuthorCreate, db: Session = Depends(ge
     service = UpdateService(db)
     return service.update_author(author_id, author,user)
 
+@app.put("/users/{user_id}", response_model= UserResponse)
+def update_user(user_id : int, users : UserCreate, db: Session = Depends(get_db),user : dict= Depends(get_current_user)):
+    """
+    This function updates the  user credential.
+    validation:
+        matches the given credentials with db.If no match found ,then execptation rises.
+    Returns:
+    returns the updated user
+        """
+    service = UpdateService(db)
+    return service.update_user(user_id,users,user)
 
 @app.delete("/books/{book_id}")
 def delete_books(book_id : int,db: Session = Depends(get_db),user: dict = Depends(get_current_user)):
