@@ -1,7 +1,0 @@
-__pycache__/
-venv/
-.env
-alembic/versions/
-*.db
-*.sqlite3
-
