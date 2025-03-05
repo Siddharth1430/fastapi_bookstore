@@ -1,8 +1,6 @@
 from fastapi import Depends,HTTPException
 from models import Book,Author
 from sqlalchemy.orm import Session
-from db import session
-from db import get_db 
 
 class DeleteService:
     """This is a DeleteService class to delete a book"""
@@ -12,13 +10,12 @@ class DeleteService:
         """
         self.session = session
 
-    def delete_book(self,book_id : int):
+    def delete_book(self,book_id : int,user: dict):
         """
         This function which gets the id of he book which needs to be deleted.
         Returns:
         Dict: return a dic to display a message
         """
-
         results = self.session.query(Book).filter(Book.id == book_id).first()
         if not results :
             raise HTTPException(status_code=404, detail="Item not found")
@@ -26,7 +23,7 @@ class DeleteService:
         self.session.commit()
         return {"message":"book deleted"}
     
-    def delete_author(self, author_id : int):
+    def delete_author(self, author_id : int,user: dict):
         """
         This function which gets the id of he author which needs to be deleted.
         Returns:

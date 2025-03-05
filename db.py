@@ -13,17 +13,12 @@ import os
     port=25995
 )"""
 
-
-
-load_dotenv()  # Load environment variables
-
+load_dotenv() 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL )
-
 Session = sessionmaker(bind=engine)
 session = Session()
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def get_db():
     db = SessionLocal()

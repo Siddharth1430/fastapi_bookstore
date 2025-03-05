@@ -1,23 +1,9 @@
-from fastapi import Depends,HTTPException,UploadFile
+from fastapi import Depends,HTTPException
 from models import Book,Author
 from sqlalchemy.orm import Session
-from db import session
-from pydantic import BaseModel
-from db import get_db 
-from schemas import BookCreate,AuthorCreate
-import cloudinary.uploader
-import os
-from dotenv import load_dotenv  
-from fastapi.responses import StreamingResponse
+from schemas.book_schemas import BookCreate
+from schemas.author_schemas import AuthorCreate
 
-load_dotenv()
-
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-    secure=True
-)
 class CreateService:
     """This is a CreateService class to create a book"""
     def __init__(self,session: Session) -> None:
@@ -26,7 +12,7 @@ class CreateService:
         """
         self.session = session 
         
-    def create_book(self,book: BookCreate):
+    def create_book(self,book: BookCreate,user: dict):
         """
         This function creates the new book .
         validation:
@@ -45,7 +31,7 @@ class CreateService:
         self.session.refresh(new)
         return new
 
-    def create_author(self, book_id: int,author: AuthorCreate):
+    def create_author(self, book_id: int,author: AuthorCreate,user: dict):
         """
         This function creates the new author .
         validation:
@@ -63,37 +49,9 @@ class CreateService:
         new_author = Author(**author.model_dump())
         self.session.add(new_author)
         self.session.commit()
-        self.session.refresh(new_author)
-            
+        self.session.refresh(new_author)            
         book.author_id=new_author.author_id
-
-        self.session.commit()
-        
+        self.session.commit()     
         return new_author
 
-    def upload_file(self,file: UploadFile):
-        """
-        This function uploads the file .
-        validation:
-            ensures file is in the pdf format
-            file doesnt exceed the limited size
-        Returns:
-            returns the file that is uploaded.
-        """
-        size=len( file.file.read())
-        if size > 10*1024*1024:
-            raise HTTPException(status_code=404, detail="File size exceeds the limit")
-        if file.content_type != "application/pdf":
-            raise HTTPException(status_code=400, detail="File is not a pdf")
-        file.file.seek(0)
-        cloudinary.uploader.upload(file.file,resource_type="raw")
-        return {"message" : "uploaded sucessfully"}
-
-    def file_stream(self, file: UploadFile):
-        def chunk():
-            chunk_size =10 * 1024
-            while True:
-                chunk= file.read(chunk_size)
-                if chunk:
-                    yield chunk
-        return StreamingResponse(chunk(), media_type="application/pdf")
+    
