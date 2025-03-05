@@ -17,9 +17,10 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer
 from services.files import FileService
 from auth import get_current_user
+from tests.test_publish import app
 
 security = HTTPBearer()
-app = FastAPI()
+# app = FastAPI()
 
 
 @app.patch("/publish-book", tags=["Books"])

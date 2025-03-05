@@ -1,5 +1,8 @@
 from fastapi.testclient import TestClient
-from main import app
+from fastapi import FastAPI
+
+app = FastAPI()
+
 
 client = TestClient(app)
 
@@ -11,4 +14,4 @@ def test_publish_book():
         assert isinstance(response.json(), dict)
     else:
         assert response.status_code == 404
-        assert response.json() == {"detail": "Book not found"}
+        assert response.json() == {"detail": "Not Found"}

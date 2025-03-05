@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy_json import mutable_json_type
+from sqlalchemy.ext.mutable import MutableDict
 
 Base = declarative_base()
 
@@ -52,5 +52,7 @@ class Users(Base):
     email = Column(String, index=True)
     avatar = Column(String)
     phone_number = Column(String)
-    meta_data = Column(mutable_json_type(dbtype=JSONB, nested=True))
+    meta_data = Column(
+        MutableDict.as_mutable(JSONB), nullable=False, server_default="{}"
+    )
     authors = relationship("Author", back_populates="user")

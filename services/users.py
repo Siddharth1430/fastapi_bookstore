@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from jose import jwt
 import os
 from dotenv import load_dotenv
+from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.dialects.postgresql import JSONB
+
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "")
@@ -48,6 +51,17 @@ class UserService:
         )
         return {"access_token": access_token}
 
+    def meta_data_update(self, email: str):
+        """
+        To update meta data
+        args: email(str) of user
+        """
+        user = self.session.query(Users).filter(Users.email == email).first()
+        if user.meta_data is None:
+            user.meta_data = {}
+        user.meta_data["visit"] = user.meta_data.get("visit", 0) + 1
+        self.session.commit()
+
     def login_user(self, user_data: UserLogin):
         """
         Authenticates a user and generates access and refresh tokens.
@@ -61,6 +75,9 @@ class UserService:
         user = self.authenticate_user(user_data.email, user_data.password)
         if not user:
             raise HTTPException(status_code=401, detail="Invalid Credentials")
+
+        self.meta_data_update(user_data.email)
+
         access_token = create_access_token(
             {"sub": user_data.email}, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         )
