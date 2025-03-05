@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime,ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy_json import mutable_json_type
+#from sqlalchemy_json import mutable_json_type
 Base = declarative_base()
 class Author(Base):
     """
@@ -43,6 +43,6 @@ class Users(Base):
     email = Column(String, index = True)
     avatar = Column(String)
     phone_number = Column(String)
-    meta_data = Column(mutable_json_type(dbtype=JSONB, nested=True))
+    meta_data = Column(JSONB)
     authors =relationship("Author",back_populates="user")
 
