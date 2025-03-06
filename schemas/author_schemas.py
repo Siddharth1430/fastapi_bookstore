@@ -23,4 +23,5 @@ class AuthorCreate(BaseModel):
     author_id: int
     user_id: int
     name: str
+    author_email: str
     no_of_books_published: int

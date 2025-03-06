@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException
-from models import Book
-from sqlalchemy.orm import Session
+from models import Book, Users, Author
+from sqlalchemy.orm import Session, joinedload
 from schemas.book_schemas import BookPublish
 
 
@@ -9,9 +9,30 @@ class PatchServices:
         self.session = session
 
     def publish_book(self, book: BookPublish):
-        result = self.session.query(Book).filter(Book.title == book.title).first()
+        result = (
+            self.session.query(Book)
+            .options(joinedload(Book.author))
+            .filter(Book.title == book.title)
+            .first()
+        )
         if not result:
             raise HTTPException(status_code=404, detail="Book not found")
+
+        if not result.author:
+            raise HTTPException(
+                status_code=404, detail="Author not foundf for this book"
+            )
+
+        user = self.session.query(Users).filter(Users.user_id == book.user_id).first()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if user.user_id != result.author.user_id:
+            raise HTTPException(status_code=403, detail="Permission denied")
+
+        if result.author_id != result.author.author_id:
+            raise HTTPException(status_code=403, detail="This book has another author")
 
         result.is_published = True  # type:ignore
         self.session.commit()
