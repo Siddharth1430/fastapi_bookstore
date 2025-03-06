@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query, File, UploadFile
+from fastapi import FastAPI, Depends, Query, File, UploadFile, HTTPException
 from services.retrieve import RetrieveService
 from services.create import CreateService
 from services.update import UpdateService
@@ -17,16 +17,22 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer
 from services.files import FileService
 from auth import get_current_user
-from tests.test_publish import app
+
+# from tests.test_publish import app
 
 security = HTTPBearer()
-# app = FastAPI()
+app = FastAPI()
 
 
 @app.patch("/publish-book", tags=["Books"])
-def publish_book(pusblish_data: BookPublish, db: Session = Depends(get_db)):
+def publish_book(
+    publish_data: BookPublish,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+
     publish_service = PatchServices(db)
-    return publish_service.publish_book(pusblish_data)
+    return publish_service.publish_book(publish_data, current_user)
 
 
 @app.post("/generateotp", tags=["Login"])

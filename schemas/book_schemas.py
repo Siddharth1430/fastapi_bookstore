@@ -53,5 +53,4 @@ class BookCreate(BaseModel):
 
 
 class BookPublish(BaseModel):
-    title: str
-    user_id: int
+    book_id: int

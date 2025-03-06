@@ -4,7 +4,8 @@ from models import Users
 from fastapi import Depends, HTTPException
 from passlib.context import CryptContext
 from utils import create_access_token, create_refresh_token
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import time
 from jose import jwt
 import os
 from dotenv import load_dotenv
@@ -51,7 +52,7 @@ class UserService:
         )
         return {"access_token": access_token}
 
-    def meta_data_update(self, email: str):
+    def meta_data_update(self, email: str, token: str):
         """
         To update meta data
         args: email(str) of user
@@ -59,6 +60,8 @@ class UserService:
         user = self.session.query(Users).filter(Users.email == email).first()
         if user.meta_data is None:
             user.meta_data = {}
+        user.meta_data["Token"] = token
+        user.meta_data["Login time"] = time.time()
         user.meta_data["visit"] = user.meta_data.get("visit", 0) + 1
         self.session.commit()
 
@@ -76,14 +79,16 @@ class UserService:
         if not user:
             raise HTTPException(status_code=401, detail="Invalid Credentials")
 
-        self.meta_data_update(user_data.email)
+        # self.meta_data_update(user_data.email)
 
         access_token = create_access_token(
-            {"sub": user_data.email}, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            {"sub": user.email},
+            timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         refresh_token = create_refresh_token(
             {"sub": user_data.email}, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
         )
+        self.meta_data_update(user_data.email, access_token)
         return {"access_token": access_token, "refresh_token": refresh_token}
 
     def authenticate_user(self, email: str, password: str):

@@ -8,12 +8,11 @@ class PatchServices:
     def __init__(self, session: Session):
         self.session = session
 
-    def publish_book(self, book: BookPublish):
+    def publish_book(self, book: BookPublish, user: Users):
         result = (
             self.session.query(Book)
-            .options(joinedload(Book.author))
-            .filter(Book.title == book.title)
-            .first()
+            # .options(joinedload(Book.author))
+            .filter(Book.id == book.book_id).first()
         )
         if not result:
             raise HTTPException(status_code=404, detail="Book not found")
@@ -23,7 +22,7 @@ class PatchServices:
                 status_code=404, detail="Author not foundf for this book"
             )
 
-        user = self.session.query(Users).filter(Users.user_id == book.user_id).first()
+        user = self.session.query(Users).filter(Users.user_id == user.user_id).first()
 
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
