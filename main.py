@@ -4,9 +4,10 @@ from services.create import CreateService
 from services.update import UpdateService
 from services.delete import DeleteService
 from services.users import UserService
+from services.patch import PatchServices
 from otp_auth.handler import OTPAuthentication
 from schemas.author_schemas import AuthorCreate, AuthorSchema
-from schemas.book_schemas import BookSchema, BookCreate, BookFilter
+from schemas.book_schemas import BookSchema, BookCreate, BookFilter, BookPublish
 from schemas.user_schema import UserLogin, UserResponse, UserCreate, Refresh
 from otp_auth.schema import Verifier, OTPGenerator
 from typing import List
@@ -16,9 +17,16 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer
 from services.files import FileService
 from auth import get_current_user
+from tests.test_publish import app
 
 security = HTTPBearer()
-app = FastAPI()
+# app = FastAPI()
+
+
+@app.patch("/publish-book", tags=["Books"])
+def publish_book(pusblish_data: BookPublish, db: Session = Depends(get_db)):
+    publish_service = PatchServices(db)
+    return publish_service.publish_book(pusblish_data)
 
 
 @app.post("/generateotp", tags=["Login"])
